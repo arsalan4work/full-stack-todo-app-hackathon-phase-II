@@ -1,7 +1,7 @@
 # Frontend Guidelines
  
 ## Stack
-- Next.js 14 (App Router)
+- Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS
  
