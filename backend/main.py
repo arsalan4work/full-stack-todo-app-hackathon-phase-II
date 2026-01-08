@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from .db import create_db_and_tables
-from .routes import tasks
+from backend.db import create_db_and_tables
+from backend.routes import tasks
 
 app = FastAPI(title="Todo API")
 

@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "better-auth": "^1.0.0",
+    "@better-auth/react": "^1.0.0",
     "@neondatabase/serverless": "^1.0.2",
     "dotenv": "^17.2.3",
     "next": "16.1.1",
