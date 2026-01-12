@@ -1,55 +1,64 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+Version change: N/A → 1.0.0
+Added sections: Test-Driven Development, Clean Code Standards, Privacy & Security Policy, Code Review Checklist
+Removed sections: None
+Templates requiring updates: N/A
+Follow-up TODOs: None
+-->
+# Todo Full-Stack Web Application Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### Test-Driven Development (NON-NEGOTIABLE)
+All tests must be written before implementation code. A minimum of 80% code coverage is required for all code submissions. Backend tests use pytest, frontend tests use Jest/React Testing Library. The Red-Green-Refactor cycle is strictly enforced: write failing test → implement code to pass test → refactor as needed.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### Clean Code Standards
+All code must follow established standards: Python code follows PEP 8 and modern Python conventions with proper type hints, TypeScript code uses strict mode with comprehensive type definitions. Functions must have single responsibility, use meaningful names, and avoid code duplication. Code must be self-documenting through clear naming and small, focused functions.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### Privacy & Security Policy (NON-NEGOTIABLE)
+User data isolation is mandatory - each user can only access their own data. JWT token authentication is required for all API endpoints. All secrets must be stored in environment variables. Production deployments must use HTTPS only. Passwords must be hashed with bcrypt (12+ rounds minimum). Rate limiting is required on authentication endpoints to prevent abuse.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### Comprehensive Error Handling
+All code must implement proper error handling with appropriate HTTP status codes. Error responses must be consistent and informative without exposing internal system details. Every API endpoint must handle expected error cases and return appropriate error responses. Client-side error handling must provide user-friendly messages.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### Type Safety & Validation
+All API requests and responses must be validated using Pydantic models on the backend and TypeScript interfaces on the frontend. Input validation must occur at system boundaries. Type hints are mandatory for all Python functions and TypeScript code must use strict typing to prevent runtime errors.
 
-### [PRINCIPLE_6_NAME]
+### Minimal Viable Changes
+All code submissions must follow the smallest viable change principle. No unrelated refactoring or "improvements" should be included in feature pull requests. Changes must be focused and testable. Unrelated changes should be submitted as separate pull requests to maintain clarity and reviewability.
 
+## Development Workflow Standards
 
-[PRINCIPLE__DESCRIPTION]
+### Code Review Checklist
+All pull requests must pass the following checklist before merging:
+- [ ] All tests passing (backend and frontend)
+- [ ] Type hints/types complete and correct
+- [ ] Error handling implemented for all code paths
+- [ ] Authentication verified for all API endpoints
+- [ ] User data isolation confirmed (users only see their data)
+- [ ] Security best practices followed
+- [ ] Code duplication eliminated
+- [ ] Performance considerations addressed
+- [ ] Documentation updated if applicable
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### Testing Requirements
+- Backend: pytest with minimum 80% coverage
+- Frontend: Jest/React Testing Library with minimum 80% coverage
+- Integration tests for API endpoints
+- Unit tests for business logic
+- End-to-end tests for critical user flows
+- Security tests for authentication and authorization
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Technology Stack Requirements
+- Backend: Python 3.10+, FastAPI, SQLModel, Neon PostgreSQL
+- Frontend: Next.js 14, TypeScript, Tailwind CSS
+- Authentication: JWT tokens with refresh mechanism
+- Database: SQLModel with proper relationships and constraints
+- Testing: pytest (backend), Jest/React Testing Library (frontend)
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other development practices and standards within the project. All code submissions must comply with these principles. Amendments to this constitution require explicit documentation, team approval, and migration planning for existing code. All pull requests and code reviews must verify compliance with these principles. Complexity must be justified with clear business value. New features must include appropriate tests, documentation, and security considerations.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-01-05
