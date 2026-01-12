@@ -1,23 +1,23 @@
 from datetime import datetime
 from typing import Optional
-from sqlmodel import Field, SQLModel
-from sqlalchemy import Column, DateTime, Index
-from sqlmodel import Relationship
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy.orm import relationship
+from db import Base
 
 
-class Task(SQLModel, table=True):
+class Task(Base):
     __tablename__ = "tasks"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="users.id", index=True)
-    title: str = Field(max_length=255)
-    description: Optional[str] = Field(default=None, max_length=1000)
-    completed: bool = Field(default=False)
-    created_at: datetime = Field(sa_column=Column(DateTime, default=datetime.utcnow))
-    updated_at: datetime = Field(sa_column=Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow))
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(String(1000), nullable=True)
+    completed = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship to user
-    user: "User" = Relationship(back_populates="tasks", sa_relationship_kwargs={"lazy": "select"})
+    user = relationship("User", back_populates="tasks", lazy="select")
 
     # Add indexes for performance
     __table_args__ = (

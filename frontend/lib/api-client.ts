@@ -46,67 +46,91 @@ class ApiClient {
       return {} as T;
     }
 
-    return response.json();
+    const data = await response.json();
+
+    // Transform response to match frontend expectations if needed
+    if (endpoint.includes('/tasks')) {
+      if (Array.isArray(data)) {
+        // Handle array of tasks
+        return data.map(this.transformTaskResponse) as unknown as T;
+      } else if (data && typeof data === 'object' && data.hasOwnProperty('id')) {
+        // Handle single task
+        return this.transformTaskResponse(data) as unknown as T;
+      }
+    }
+
+    return data;
+  }
+
+  private transformTaskResponse(task: any): Task {
+    // Map backend field names to frontend field names
+    return {
+      id: task.id,
+      user_id: task.user_id,
+      title: task.title,
+      description: task.description,
+      completed: task.completed,
+      created_at: task.created_at,
+    };
   }
 
   private getToken(): string | null {
-    // Attempt to get the token from Better Auth session
-    // For now, we'll try to get it from localStorage as a fallback
+    // Get the token from our custom auth system
     if (typeof window !== 'undefined') {
-      // Try to get token from Better Auth's storage
-      const session = localStorage.getItem('better-auth.session');
-      if (session) {
-        try {
-          const sessionObj = JSON.parse(session);
-          return sessionObj.token || sessionObj.accessToken || null;
-        } catch (e) {
-          console.warn('Could not parse session from localStorage');
-          return null;
-        }
-      }
-
-      // Fallback to legacy auth-token
+      // Get token from localStorage where our auth system stores it
       return localStorage.getItem('auth-token');
     }
     return null;
   }
 
-  async getTasks(userId: string, status?: string): Promise<Task[]> {
-    let url = `/users/${userId}/tasks`;
+  async getTasks(userId: string | number, status?: string): Promise<Task[]> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    let url = `/users/${numericUserId}/tasks`;
     if (status) {
       url += `?status=${status}`;
     }
     return this.request<Task[]>(url);
   }
 
-  async createTask(userId: string, data: CreateTaskInput): Promise<Task> {
-    return this.request<Task>(`/users/${userId}/tasks`, {
+  async createTask(userId: string | number, data: CreateTaskInput): Promise<Task> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return this.request<Task>(`/users/${numericUserId}/tasks`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async getTask(userId: string, taskId: number): Promise<Task> {
-    return this.request<Task>(`/users/${userId}/tasks/${taskId}`, {
+  async getTask(userId: string | number, taskId: number): Promise<Task> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return this.request<Task>(`/users/${numericUserId}/tasks/${taskId}`, {
       method: 'GET',
     });
   }
 
-  async updateTask(userId: string, taskId: number, data: UpdateTaskInput): Promise<Task> {
-    return this.request<Task>(`/users/${userId}/tasks/${taskId}`, {
+  async updateTask(userId: string | number, taskId: number, data: UpdateTaskInput): Promise<Task> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return this.request<Task>(`/users/${numericUserId}/tasks/${taskId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
   }
 
-  async deleteTask(userId: string, taskId: number): Promise<void> {
-    await this.request(`/users/${userId}/tasks/${taskId}`, {
+  async deleteTask(userId: string | number, taskId: number): Promise<void> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    await this.request(`/users/${numericUserId}/tasks/${taskId}`, {
       method: 'DELETE',
     });
   }
 
-  async toggleComplete(userId: string, taskId: number): Promise<Task> {
-    return this.request<Task>(`/users/${userId}/tasks/${taskId}/complete`, {
+  async toggleComplete(userId: string | number, taskId: number): Promise<Task> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return this.request<Task>(`/users/${numericUserId}/tasks/${taskId}/complete`, {
       method: 'PATCH',
     });
   }
@@ -115,9 +139,9 @@ class ApiClient {
 export const apiClient = new ApiClient();
 
 // Export individual functions for convenience
-export const getTasks = (userId: string, status?: string) => apiClient.getTasks(userId, status);
-export const createTask = (userId: string, data: CreateTaskInput) => apiClient.createTask(userId, data);
-export const getTask = (userId: string, taskId: number) => apiClient.getTask(userId, taskId);
-export const updateTask = (userId: string, taskId: number, data: UpdateTaskInput) => apiClient.updateTask(userId, taskId, data);
-export const deleteTask = (userId: string, taskId: number) => apiClient.deleteTask(userId, taskId);
-export const toggleComplete = (userId: string, taskId: number) => apiClient.toggleComplete(userId, taskId);
+export const getTasks = (userId: string | number, status?: string) => apiClient.getTasks(userId, status);
+export const createTask = (userId: string | number, data: CreateTaskInput) => apiClient.createTask(userId, data);
+export const getTask = (userId: string | number, taskId: number) => apiClient.getTask(userId, taskId);
+export const updateTask = (userId: string | number, taskId: number, data: UpdateTaskInput) => apiClient.updateTask(userId, taskId, data);
+export const deleteTask = (userId: string | number, taskId: number) => apiClient.deleteTask(userId, taskId);
+export const toggleComplete = (userId: string | number, taskId: number) => apiClient.toggleComplete(userId, taskId);

@@ -1,22 +1,22 @@
 from datetime import datetime
-from typing import Optional, List
-from sqlmodel import Field, SQLModel
-from sqlalchemy import Column, DateTime, Index
-from sqlmodel import Relationship
+from typing import List
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Index
+from sqlalchemy.orm import relationship
+from db import Base
 
 
-class User(SQLModel, table=True):
+class User(Base):
     __tablename__ = "users"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str = Field(unique=True, max_length=255)
-    password_hash: str = Field(max_length=255)
-    created_at: datetime = Field(sa_column=Column(DateTime, default=datetime.utcnow))
-    updated_at: datetime = Field(sa_column=Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow))
-    is_active: bool = Field(default=True)
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     # Relationship to tasks
-    tasks: List["Task"] = Relationship(back_populates="user", sa_relationship_kwargs={"lazy": "select"})
+    tasks = relationship("Task", back_populates="user", lazy="select")
 
     # Add indexes for performance
     __table_args__ = (

@@ -6,7 +6,13 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "fastapi[standard]>=0.128.0",
-    "sqlmodel>=0.0.31",
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
+    "pyjwt>=2.10.1",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*", "auth*", "models*", "routes*", "schemas*"]

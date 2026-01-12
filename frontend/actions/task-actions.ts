@@ -4,8 +4,18 @@ import { revalidatePath } from 'next/cache';
 import { createTask, updateTask, deleteTask, toggleComplete } from '@/lib/api-client-server';
 import { CreateTaskInput, UpdateTaskInput } from '@/lib/types';
 
+async function getAuthToken(): Promise<string | null> {
+  // In a real implementation, this would get the JWT token from the session
+  // For now, we'll return null and assume the token is handled elsewhere
+  // Better Auth should provide a server-side method to get the session token
+  return null;
+}
+
 export async function createTaskAction(userId: string, formData: FormData) {
   try {
+    // Get auth token
+    const token = await getAuthToken();
+
     // Extract form data
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
@@ -32,7 +42,7 @@ export async function createTaskAction(userId: string, formData: FormData) {
     };
 
     // Call API to create task
-    const newTask = await createTask(userId, taskData);
+    const newTask = await createTask(userId, taskData, token);
 
     // Revalidate the path to update the UI
     revalidatePath('/dashboard');
@@ -54,6 +64,9 @@ export async function createTaskAction(userId: string, formData: FormData) {
 
 export async function updateTaskAction(userId: string, formData: FormData) {
   try {
+    // Get auth token
+    const token = await getAuthToken();
+
     // Extract form data
     const taskId = Number(formData.get('taskId'));
     const title = formData.get('title') as string;
@@ -89,7 +102,7 @@ export async function updateTaskAction(userId: string, formData: FormData) {
     };
 
     // Call API to update task
-    const updatedTask = await updateTask(userId, taskId, taskData);
+    const updatedTask = await updateTask(userId, taskId, taskData, token);
 
     // Revalidate the path to update the UI
     revalidatePath('/dashboard');
@@ -111,6 +124,9 @@ export async function updateTaskAction(userId: string, formData: FormData) {
 
 export async function deleteTaskAction(userId: string, taskId: number) {
   try {
+    // Get auth token
+    const token = await getAuthToken();
+
     // Validate task ID
     if (!taskId || isNaN(taskId)) {
       return {
@@ -120,7 +136,7 @@ export async function deleteTaskAction(userId: string, taskId: number) {
     }
 
     // Call API to delete task
-    await deleteTask(userId, taskId);
+    await deleteTask(userId, taskId, token);
 
     // Revalidate the path to update the UI
     revalidatePath('/dashboard');
@@ -141,6 +157,9 @@ export async function deleteTaskAction(userId: string, taskId: number) {
 
 export async function toggleCompleteAction(userId: string, taskId: number) {
   try {
+    // Get auth token
+    const token = await getAuthToken();
+
     // Validate task ID
     if (!taskId || isNaN(taskId)) {
       return {
@@ -150,7 +169,7 @@ export async function toggleCompleteAction(userId: string, taskId: number) {
     }
 
     // Call API to toggle task completion
-    const updatedTask = await toggleComplete(userId, taskId);
+    const updatedTask = await toggleComplete(userId, taskId, token);
 
     // Revalidate the path to update the UI
     revalidatePath('/dashboard');

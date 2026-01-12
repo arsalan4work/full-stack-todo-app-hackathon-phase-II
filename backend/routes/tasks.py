@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
-from typing import Annotated, List, Optional
+from sqlalchemy import select, and_
+from sqlalchemy.orm import Session
+from typing import List, Optional
 from datetime import datetime
 
-from ..db import get_engine
-from ..models import Task
-from ..auth.dependencies import get_current_user_id
-from ..schemas.task import TaskCreate, TaskUpdate, TaskResponse
+from db import get_session
+from models import Task
+from auth.dependencies import get_current_user_id
+from schemas.task import TaskCreate, TaskUpdate, TaskResponse
 
 
 router = APIRouter(prefix="/api", tags=["tasks"])
@@ -16,6 +17,7 @@ router = APIRouter(prefix="/api", tags=["tasks"])
 async def create_task(
     user_id: int,
     task_create: TaskCreate,
+    session: Session = Depends(get_session),
     authenticated_user_id: str = Depends(get_current_user_id)
 ) -> TaskResponse:
     """
@@ -48,32 +50,31 @@ async def create_task(
         title=task_create.title.strip(),
         description=task_create.description,
         completed=False,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(),
+        updated_at=datetime.now()
     )
 
     # Add to database
-    engine = get_engine()
-    with Session(engine) as session:
-        session.add(task)
-        session.commit()
-        session.refresh(task)
+    session.add(task)
+    session.commit()
+    session.refresh(task)
 
-        # Return the created task
-        return TaskResponse(
-            id=task.id,
-            user_id=task.user_id,
-            title=task.title,
-            description=task.description,
-            completed=task.completed,
-            created_at=task.created_at
-        )
+    # Return the created task
+    return TaskResponse(
+        id=task.id,
+        user_id=task.user_id,
+        title=task.title,
+        description=task.description,
+        completed=task.completed,
+        created_at=task.created_at
+    )
 
 
 @router.get("/users/{user_id}/tasks", response_model=List[TaskResponse])
 async def list_tasks(
     user_id: int,
     status_filter: Optional[str] = None,
+    session: Session = Depends(get_session),
     authenticated_user_id: str = Depends(get_current_user_id)
 ) -> List[TaskResponse]:
     """
@@ -89,15 +90,15 @@ async def list_tasks(
         )
 
     # Build query with user_id filter (always applied)
-    query = select(Task).where(Task.user_id == user_id)
+    query = session.query(Task).filter(Task.user_id == user_id)
 
     # Apply status filter if provided
     if status_filter:
         status_filter_lower = status_filter.lower()
         if status_filter_lower == "pending":
-            query = query.where(Task.completed == False)
+            query = query.filter(Task.completed == False)
         elif status_filter_lower == "completed":
-            query = query.where(Task.completed == True)
+            query = query.filter(Task.completed == True)
         elif status_filter_lower != "all":
             # If it's not 'all', 'pending', or 'completed', raise an error
             raise HTTPException(
@@ -106,30 +107,29 @@ async def list_tasks(
             )
 
     # Execute query
-    engine = get_engine()
-    with Session(engine) as session:
-        tasks = session.exec(query).all()
+    tasks = query.all()
 
-        # Convert to response models
-        task_responses = [
-            TaskResponse(
-                id=task.id,
-                user_id=task.user_id,
-                title=task.title,
-                description=task.description,
-                completed=task.completed,
-                created_at=task.created_at
-            )
-            for task in tasks
-        ]
+    # Convert to response models
+    task_responses = [
+        TaskResponse(
+            id=task.id,
+            user_id=task.user_id,
+            title=task.title,
+            description=task.description,
+            completed=task.completed,
+            created_at=task.created_at
+        )
+        for task in tasks
+    ]
 
-        return task_responses
+    return task_responses
 
 
 @router.get("/users/{user_id}/tasks/{task_id}", response_model=TaskResponse)
 async def get_task(
     user_id: int,
     task_id: int,
+    session: Session = Depends(get_session),
     authenticated_user_id: str = Depends(get_current_user_id)
 ) -> TaskResponse:
     """
@@ -145,33 +145,31 @@ async def get_task(
         )
 
     # Fetch the task from the database
-    engine = get_engine()
-    with Session(engine) as session:
-        task = session.get(Task, task_id)
+    task = session.query(Task).filter(Task.id == task_id).first()
 
-        # Check if task exists
-        if task is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found"
-            )
-
-        # Verify that the task belongs to the authenticated user
-        if task.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Task does not belong to the authenticated user"
-            )
-
-        # Return the task
-        return TaskResponse(
-            id=task.id,
-            user_id=task.user_id,
-            title=task.title,
-            description=task.description,
-            completed=task.completed,
-            created_at=task.created_at
+    # Check if task exists
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
         )
+
+    # Verify that the task belongs to the authenticated user
+    if task.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Task does not belong to the authenticated user"
+        )
+
+    # Return the task
+    return TaskResponse(
+        id=task.id,
+        user_id=task.user_id,
+        title=task.title,
+        description=task.description,
+        completed=task.completed,
+        created_at=task.created_at
+    )
 
 
 @router.put("/users/{user_id}/tasks/{task_id}", response_model=TaskResponse)
@@ -179,6 +177,7 @@ async def update_task(
     user_id: int,
     task_id: int,
     task_update: TaskUpdate,
+    session: Session = Depends(get_session),
     authenticated_user_id: str = Depends(get_current_user_id)
 ) -> TaskResponse:
     """
@@ -195,66 +194,64 @@ async def update_task(
         )
 
     # Fetch the task from the database
-    engine = get_engine()
-    with Session(engine) as session:
-        task = session.get(Task, task_id)
+    task = session.query(Task).filter(Task.id == task_id).first()
 
-        # Check if task exists
-        if task is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found"
-            )
-
-        # Verify that the task belongs to the authenticated user
-        if task.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Task does not belong to the authenticated user"
-            )
-
-        # Validate title if provided
-        if task_update.title is not None:
-            if len(task_update.title.strip()) == 0:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Title cannot be empty"
-                )
-            if len(task_update.title) > 200:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Title must be 200 characters or less"
-                )
-
-        # Update task fields only if provided in the request
-        if task_update.title is not None:
-            task.title = task_update.title.strip()
-        if task_update.description is not None:
-            task.description = task_update.description
-
-        # Update the updated_at timestamp
-        task.updated_at = datetime.utcnow()
-
-        # Commit changes to database
-        session.add(task)
-        session.commit()
-        session.refresh(task)
-
-        # Return the updated task
-        return TaskResponse(
-            id=task.id,
-            user_id=task.user_id,
-            title=task.title,
-            description=task.description,
-            completed=task.completed,
-            created_at=task.created_at
+    # Check if task exists
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
         )
+
+    # Verify that the task belongs to the authenticated user
+    if task.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Task does not belong to the authenticated user"
+        )
+
+    # Validate title if provided
+    if task_update.title is not None:
+        if len(task_update.title.strip()) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Title cannot be empty"
+            )
+        if len(task_update.title) > 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Title must be 200 characters or less"
+            )
+
+    # Update task fields only if provided in the request
+    if task_update.title is not None:
+        task.title = task_update.title.strip()
+    if task_update.description is not None:
+        task.description = task_update.description
+
+    # Update the updated_at timestamp
+    task.updated_at = datetime.now()
+
+    # Commit changes to database
+    session.commit()
+    session.refresh(task)
+
+    # Return the updated task
+    return TaskResponse(
+        id=task.id,
+        user_id=task.user_id,
+        title=task.title,
+        description=task.description,
+        completed=task.completed,
+        created_at=task.created_at
+    )
 
 
 @router.delete("/users/{user_id}/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
     user_id: int,
     task_id: int,
+    session: Session = Depends(get_session),
     authenticated_user_id: str = Depends(get_current_user_id)
 ) -> None:
     """
@@ -271,36 +268,35 @@ async def delete_task(
         )
 
     # Fetch the task from the database
-    engine = get_engine()
-    with Session(engine) as session:
-        task = session.get(Task, task_id)
+    task = session.query(Task).filter(Task.id == task_id).first()
 
-        # Check if task exists
-        if task is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found"
-            )
+    # Check if task exists
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
 
-        # Verify that the task belongs to the authenticated user
-        if task.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Task does not belong to the authenticated user"
-            )
+    # Verify that the task belongs to the authenticated user
+    if task.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Task does not belong to the authenticated user"
+        )
 
-        # Delete the task from the database
-        session.delete(task)
-        session.commit()
+    # Delete the task from the database
+    session.delete(task)
+    session.commit()
 
-        # Return 204 No Content
-        return None
+    # Return 204 No Content
+    return None
 
 
 @router.patch("/users/{user_id}/tasks/{task_id}/complete", response_model=TaskResponse)
 async def toggle_task_completion(
     user_id: int,
     task_id: int,
+    session: Session = Depends(get_session),
     authenticated_user_id: str = Depends(get_current_user_id)
 ) -> TaskResponse:
     """
@@ -317,41 +313,38 @@ async def toggle_task_completion(
         )
 
     # Fetch the task from the database
-    engine = get_engine()
-    with Session(engine) as session:
-        task = session.get(Task, task_id)
+    task = session.query(Task).filter(Task.id == task_id).first()
 
-        # Check if task exists
-        if task is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found"
-            )
-
-        # Verify that the task belongs to the authenticated user
-        if task.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Task does not belong to the authenticated user"
-            )
-
-        # Toggle the completion status
-        task.completed = not task.completed
-
-        # Update the updated_at timestamp
-        task.updated_at = datetime.utcnow()
-
-        # Commit changes to database
-        session.add(task)
-        session.commit()
-        session.refresh(task)
-
-        # Return the updated task
-        return TaskResponse(
-            id=task.id,
-            user_id=task.user_id,
-            title=task.title,
-            description=task.description,
-            completed=task.completed,
-            created_at=task.created_at
+    # Check if task exists
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
         )
+
+    # Verify that the task belongs to the authenticated user
+    if task.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Task does not belong to the authenticated user"
+        )
+
+    # Toggle the completion status
+    task.completed = not task.completed
+
+    # Update the updated_at timestamp
+    task.updated_at = datetime.now()
+
+    # Commit changes to database
+    session.commit()
+    session.refresh(task)
+
+    # Return the updated task
+    return TaskResponse(
+        id=task.id,
+        user_id=task.user_id,
+        title=task.title,
+        description=task.description,
+        completed=task.completed,
+        created_at=task.created_at
+    )

@@ -10,7 +10,8 @@ interface ApiResponse<T> {
 class ServerApiClient {
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    token?: string  // Optional token for authentication
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
@@ -19,12 +20,24 @@ class ServerApiClient {
       ...options.headers,
     };
 
-    // For server-side requests, we may need to handle authentication differently
-    // This is a placeholder - in a real implementation, you'd pass the token from context
+    // Add authorization header if token is provided
+    if (token) {
+      (headers as any)['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(url, {
       ...options,
       headers,
     });
+
+    if (response.status === 401) {
+      // For server-side, we might need to handle this differently
+      throw new Error('Unauthorized: Session may have expired');
+    }
+
+    if (response.status === 403) {
+      throw new Error('Forbidden: You do not have permission to access this resource');
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -36,56 +49,93 @@ class ServerApiClient {
       return {} as T;
     }
 
-    return response.json();
+    const data = await response.json();
+
+    // Transform response to match frontend expectations if needed
+    if (endpoint.includes('/tasks')) {
+      if (Array.isArray(data)) {
+        // Handle array of tasks
+        return data.map(this.transformTaskResponse) as unknown as T;
+      } else if (data && typeof data === 'object' && data.hasOwnProperty('id')) {
+        // Handle single task
+        return this.transformTaskResponse(data) as unknown as T;
+      }
+    }
+
+    return data;
   }
 
-  async getTasks(userId: string, status?: string): Promise<Task[]> {
-    let url = `/api/users/${userId}/tasks`;
+  private transformTaskResponse(task: any): Task {
+    // Map backend field names to frontend field names
+    return {
+      id: task.id,
+      user_id: task.user_id,
+      title: task.title,
+      description: task.description,
+      completed: task.completed,
+      created_at: task.created_at,
+    };
+  }
+
+  async getTasks(userId: string | number, status?: string, token?: string): Promise<Task[]> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    let url = `/api/users/${numericUserId}/tasks`;
     if (status) {
       url += `?status=${status}`;
     }
-    return this.request<Task[]>(url);
+    return this.request<Task[]>(url, {}, token);
   }
 
-  async createTask(userId: string, data: CreateTaskInput): Promise<Task> {
-    return this.request<Task>(`/api/users/${userId}/tasks`, {
+  async createTask(userId: string | number, data: CreateTaskInput, token?: string): Promise<Task> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return this.request<Task>(`/api/users/${numericUserId}/tasks`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, token);
   }
 
-  async getTask(userId: string, taskId: number): Promise<Task> {
-    return this.request<Task>(`/api/users/${userId}/tasks/${taskId}`, {
+  async getTask(userId: string | number, taskId: number, token?: string): Promise<Task> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return this.request<Task>(`/api/users/${numericUserId}/tasks/${taskId}`, {
       method: 'GET',
-    });
+    }, token);
   }
 
-  async updateTask(userId: string, taskId: number, data: UpdateTaskInput): Promise<Task> {
-    return this.request<Task>(`/api/users/${userId}/tasks/${taskId}`, {
+  async updateTask(userId: string | number, taskId: number, data: UpdateTaskInput, token?: string): Promise<Task> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return this.request<Task>(`/api/users/${numericUserId}/tasks/${taskId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    });
+    }, token);
   }
 
-  async deleteTask(userId: string, taskId: number): Promise<void> {
-    await this.request(`/api/users/${userId}/tasks/${taskId}`, {
+  async deleteTask(userId: string | number, taskId: number, token?: string): Promise<void> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    await this.request(`/api/users/${numericUserId}/tasks/${taskId}`, {
       method: 'DELETE',
-    });
+    }, token);
   }
 
-  async toggleComplete(userId: string, taskId: number): Promise<Task> {
-    return this.request<Task>(`/api/users/${userId}/tasks/${taskId}/complete`, {
+  async toggleComplete(userId: string | number, taskId: number, token?: string): Promise<Task> {
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return this.request<Task>(`/api/users/${numericUserId}/tasks/${taskId}/complete`, {
       method: 'PATCH',
-    });
+    }, token);
   }
 }
 
 export const serverApiClient = new ServerApiClient();
 
 // Export individual functions for convenience
-export const getTasks = (userId: string, status?: string) => serverApiClient.getTasks(userId, status);
-export const createTask = (userId: string, data: CreateTaskInput) => serverApiClient.createTask(userId, data);
-export const getTask = (userId: string, taskId: number) => serverApiClient.getTask(userId, taskId);
-export const updateTask = (userId: string, taskId: number, data: UpdateTaskInput) => serverApiClient.updateTask(userId, taskId, data);
-export const deleteTask = (userId: string, taskId: number) => serverApiClient.deleteTask(userId, taskId);
-export const toggleComplete = (userId: string, taskId: number) => serverApiClient.toggleComplete(userId, taskId);
+export const getTasks = (userId: string | number, status?: string, token?: string) => serverApiClient.getTasks(userId, status, token);
+export const createTask = (userId: string | number, data: CreateTaskInput, token?: string) => serverApiClient.createTask(userId, data, token);
+export const getTask = (userId: string | number, taskId: number, token?: string) => serverApiClient.getTask(userId, taskId, token);
+export const updateTask = (userId: string | number, taskId: number, data: UpdateTaskInput, token?: string) => serverApiClient.updateTask(userId, taskId, data, token);
+export const deleteTask = (userId: string | number, taskId: number, token?: string) => serverApiClient.deleteTask(userId, taskId, token);
+export const toggleComplete = (userId: string | number, taskId: number, token?: string) => serverApiClient.toggleComplete(userId, taskId, token);

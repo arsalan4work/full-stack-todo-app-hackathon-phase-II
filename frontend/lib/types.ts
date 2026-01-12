@@ -1,11 +1,10 @@
 export interface Task {
   id: number;
-  userId: string;
+  user_id: number;  // Changed from userId to user_id to match backend
   title: string;
   description?: string;
   completed: boolean;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;  // Changed from createdAt to match backend
 }
 
 export interface CreateTaskInput {
