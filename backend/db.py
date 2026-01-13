@@ -1,15 +1,10 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.sql import func
+from sqlmodel import create_engine, Session
+from models import User, Task  # Import your SQLModel models
 import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
-
-Base = declarative_base()
-
 
 def get_engine():
     """Get database engine with URL from environment variable"""
@@ -40,8 +35,7 @@ def get_engine():
 def get_session():
     """Get database session - for dependency injection"""
     engine = get_engine()
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
+    session = Session(engine)
     try:
         yield session
     finally:
@@ -51,4 +45,5 @@ def get_session():
 def create_db_and_tables():
     """Create database tables for all models"""
     engine = get_engine()
-    Base.metadata.create_all(engine)
+    from sqlmodel import SQLModel
+    SQLModel.metadata.create_all(engine)

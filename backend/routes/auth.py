@@ -1,14 +1,18 @@
 # auth.py
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlmodel import Session, select
 from datetime import datetime, timedelta
 import os
 import jwt
 import logging
+from passlib.context import CryptContext
 
 from db import get_session
 from models import User
 from schemas.user import UserCreate, UserLogin, Token
+
+# Password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -46,17 +50,20 @@ async def signup(user_create: UserCreate, session: Session = Depends(get_session
         normalized_email = user_create.email.lower().strip()
 
         # Check if user already exists
-        existing_user = session.query(User).filter(User.email == normalized_email).first()
+        statement = select(User).where(User.email == normalized_email)
+        existing_user = session.exec(statement).first()
         if existing_user:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered"
             )
 
-        # Store plain password (NO HASHING - FOR DEBUGGING ONLY)
+        # Hash the password
+        hashed_password = pwd_context.hash(user_create.password)
+
         user = User(
             email=normalized_email,
-            password_hash=user_create.password,  # Storing plain password temporarily
+            password_hash=hashed_password,
             is_active=True
         )
 
@@ -136,8 +143,9 @@ async def signin(user_login: UserLogin, session: Session = Depends(get_session))
         normalized_email = user_login.email.lower().strip()
 
         # Find user by email
-        user = session.query(User).filter(User.email == normalized_email).first()
-        
+        statement = select(User).where(User.email == normalized_email)
+        user = session.exec(statement).first()
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -145,8 +153,8 @@ async def signin(user_login: UserLogin, session: Session = Depends(get_session))
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Simple password comparison (NO HASHING - FOR DEBUGGING ONLY)
-        if user_login.password != user.password_hash:
+        # Verify password using bcrypt
+        if not pwd_context.verify(user_login.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",
