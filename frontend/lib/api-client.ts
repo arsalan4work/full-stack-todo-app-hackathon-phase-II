@@ -1,6 +1,6 @@
 import { Task, CreateTaskInput, UpdateTaskInput } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-phase-ii.onrender.com/api';
 
 class ApiClient {
   private async request<T>(

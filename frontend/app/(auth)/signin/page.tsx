@@ -26,7 +26,7 @@ export default function SigninPage() {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-front.vercel.app/';
       
       console.log('=== SIGNIN DEBUG ===');
       console.log('Signing in with email:', email);

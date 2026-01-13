@@ -28,7 +28,7 @@ class AuthClient {
   private session: Session | null = null;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-phase-ii.onrender.com';
     if (this.baseUrl.endsWith('/api')) {
       this.baseUrl = this.baseUrl.slice(0, -4);
     }
