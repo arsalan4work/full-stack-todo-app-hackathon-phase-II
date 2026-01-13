@@ -46,7 +46,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-front.vercel.app/';
       
       const response = await fetch(`${apiUrl}/api/auth/signup`, {
         method: 'POST',
