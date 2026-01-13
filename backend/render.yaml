@@ -22,7 +22,7 @@ services:
           name: taskapp-db
           property: connectionString
       - key: FRONTEND_URL
-        value: https://your-frontend-url.vercel.app
+        value: https://full-stack-todo-app-hackathon-front.vercel.app
 
 databases:
   - name: taskapp-db

@@ -1,24 +1,21 @@
 from datetime import datetime
-from typing import List
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Index
-from sqlalchemy.orm import relationship
-from db import Base
+from typing import List, TYPE_CHECKING
+from sqlmodel import SQLModel, Field, Relationship
+from enum import Enum
+
+if TYPE_CHECKING:
+    from .task import Task  # For type checking only to avoid circular imports
 
 
-class User(Base):
+class User(SQLModel, table=True):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    is_active = Column(Boolean, default=True, nullable=False)
+    id: int = Field(default=None, primary_key=True)
+    email: str = Field(unique=True, nullable=False, max_length=255, index=True)
+    password_hash: str = Field(nullable=False, max_length=255)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = Field(default=True, nullable=False)
 
     # Relationship to tasks
-    tasks = relationship("Task", back_populates="user", lazy="select")
-
-    # Add indexes for performance
-    __table_args__ = (
-        Index("idx_user_email", "email"),
-    )
+    tasks: List["Task"] = Relationship(back_populates="user")
