@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import { useFormState } from 'react-dom';
+import React, { useEffect, useRef, useState } from 'react';
 import { updateTaskAction } from '@/actions/task-actions';
 import { Task } from '@/lib/types';
 
@@ -12,24 +11,24 @@ interface EditTaskModalProps {
   userId: string;
 }
 
-const initialState = {
-  message: '',
-  error: '',
-  success: false,
-};
-
 const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, isOpen, onClose, userId }) => {
-  const [state, formAction] = useFormState(updateTaskAction, initialState);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Close modal on successful update
+  // Close modal when success message is shown
   useEffect(() => {
-    if (state.success && state.message) {
-      setTimeout(() => {
+    if (success && message) {
+      const timer = setTimeout(() => {
         onClose();
+        setSuccess(false);
+        setMessage('');
+        setError('');
       }, 1000); // Close after 1 second to show success message
+      return () => clearTimeout(timer);
     }
-  }, [state.success, state.message, onClose]);
+  }, [success, message, onClose]);
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -67,13 +66,29 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, isOpen, onClose, us
 
   if (!isOpen || !task) return null;
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setSuccess(false);
+
+    const formData = new FormData(e.currentTarget);
     // Add task ID and user ID to form data
     formData.append('taskId', task.id.toString());
     formData.append('userId', userId);
 
-    // Call the server action
-    await formAction(formData);
+    try {
+      const result = await updateTaskAction(userId, formData);
+
+      if (result.success) {
+        setSuccess(true);
+        setMessage(result.message || 'Task updated successfully!');
+      } else {
+        setError(result.error || 'Failed to update task');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while updating the task');
+    }
   };
 
   return (
@@ -84,7 +99,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, isOpen, onClose, us
       >
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Edit Task</h2>
 
-        <form action={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
               Title
@@ -130,15 +145,15 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, isOpen, onClose, us
             </button>
           </div>
 
-          {state.error && (
+          {error && (
             <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
-              {state.error}
+              {error}
             </div>
           )}
 
-          {state.success && state.message && (
+          {success && message && (
             <div className="mt-4 p-3 bg-green-100 text-green-700 rounded-md">
-              {state.message}
+              {message}
             </div>
           )}
         </form>

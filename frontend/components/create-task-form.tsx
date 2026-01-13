@@ -1,39 +1,43 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useFormState } from 'react-dom';
 import { createTaskAction } from '@/actions/task-actions';
 
 interface CreateTaskFormProps {
   userId: string;
 }
 
-const initialState = {
-  message: '',
-  error: '',
-  success: false,
-};
-
 const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ userId }) => {
-  const [state, formAction] = useFormState(createTaskAction, initialState);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsSubmitting(true);
+    setError('');
+    setMessage('');
 
-    // Add userId to the form data
+    const formData = new FormData(e.currentTarget);
     formData.append('userId', userId);
 
-    // Call the server action
-    await formAction(formData);
+    try {
+      const result = await createTaskAction(userId, formData);
 
-    // Reset form after successful submission
-    if (state.success && formRef.current) {
-      formRef.current.reset();
+      if (result.success) {
+        setMessage(result.message || 'Task created successfully!');
+        if (formRef.current) {
+          formRef.current.reset();
+        }
+      } else {
+        setError(result.error || 'Failed to create task');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while creating the task');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   return (
@@ -42,7 +46,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ userId }) => {
 
       <form
         ref={formRef}
-        action={handleSubmit}
+        onSubmit={handleSubmit}
         className="space-y-4"
       >
         <div>
@@ -58,13 +62,13 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ userId }) => {
             maxLength={200}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter task title..."
-            aria-invalid={!!state.error}
-            aria-describedby={state.error ? "title-error" : undefined}
+            aria-invalid={!!error}
+            aria-describedby={error ? "title-error" : undefined}
           />
           <div className="h-1 mt-1">
-            {state.error && (
+            {error && (
               <p className="text-sm text-red-600" id="title-error">
-                {state.error}
+                {error}
               </p>
             )}
           </div>
@@ -92,8 +96,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ userId }) => {
             {isSubmitting ? 'Creating...' : 'Create Task'}
           </button>
 
-          {state.success && !state.error && state.message && (
-            <div className="text-sm text-green-600">{state.message}</div>
+          {message && (
+            <div className="text-sm text-green-600">{message}</div>
           )}
         </div>
       </form>

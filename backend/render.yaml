@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: taskapp-backend
+    env: python
+    region: virginia
+    plan: free
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: python start_server.py
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 60
+      - key: DATABASE_URL
+        fromDatabase:
+          name: taskapp-db
+          property: connectionString
+      - key: FRONTEND_URL
+        value: https://your-frontend-url.vercel.app
+
+databases:
+  - name: taskapp-db
+    databaseName: taskapp
+    plan: free
+    region: virginia

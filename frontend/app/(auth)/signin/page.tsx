@@ -10,12 +10,12 @@ export default function SigninPage() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
-  const showToast = (message, type = 'error') => {
+  const showToast = (message: string, type: string = 'error') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 5000);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -59,7 +59,7 @@ export default function SigninPage() {
       } else {
         throw new Error('No access token received');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Signin error:', err);
       showToast(err.message || 'Invalid email or password');
     } finally {
@@ -107,7 +107,7 @@ export default function SigninPage() {
           </div>
 
           {/* Form */}
-          <div className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Input */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -170,7 +170,7 @@ export default function SigninPage() {
 
             {/* Submit Button */}
             <button
-              onClick={handleSubmit}
+              type="submit"
               disabled={loading}
               className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
             >
@@ -186,7 +186,7 @@ export default function SigninPage() {
                 </>
               )}
             </button>
-          </div>
+          </form>
 
           {/* Divider */}
           <div className="relative my-6">

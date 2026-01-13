@@ -4,11 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { createTask, updateTask, deleteTask, toggleComplete } from '@/lib/api-client-server';
 import { CreateTaskInput, UpdateTaskInput } from '@/lib/types';
 
-async function getAuthToken(): Promise<string | null> {
+async function getAuthToken(): Promise<string | undefined> {
   // In a real implementation, this would get the JWT token from the session
-  // For now, we'll return null and assume the token is handled elsewhere
+  // For now, we'll return undefined and assume the token is handled elsewhere
   // Better Auth should provide a server-side method to get the session token
-  return null;
+  return undefined;
 }
 
 export async function createTaskAction(userId: string, formData: FormData) {
