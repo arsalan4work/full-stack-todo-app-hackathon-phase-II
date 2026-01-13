@@ -12,18 +12,18 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
-  const showToast = (message, type = 'error') => {
+  const showToast = (message: string, type: string = 'error') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 5000);
   };
 
-  const validatePassword = (pass) => {
+  const validatePassword = (pass: string) => {
     if (pass.length < 6) return 'Password must be at least 6 characters';
     if (pass.length > 128) return 'Password is too long (max 128 characters)';
     return null;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
@@ -72,14 +72,14 @@ export default function SignupPage() {
           window.location.href = '/dashboard';
         }, 1500);
       }
-    } catch (err) {
+    } catch (err: any) {
       showToast(err.message || 'An error occurred during signup');
     } finally {
       setLoading(false);
     }
   };
 
-  const getPasswordStrength = (pass) => {
+  const getPasswordStrength = (pass: string) => {
     if (!pass) return { strength: 0, label: '', color: '' };
     if (pass.length < 6) return { strength: 33, label: 'Weak', color: 'bg-red-500' };
     if (pass.length < 10) return { strength: 66, label: 'Medium', color: 'bg-yellow-500' };
@@ -128,7 +128,7 @@ export default function SignupPage() {
           </div>
 
           {/* Form */}
-          <div className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Input */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -224,7 +224,7 @@ export default function SignupPage() {
 
             {/* Submit Button */}
             <button
-              onClick={handleSubmit}
+              type="submit"
               disabled={loading}
               className="w-full py-3 px-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
             >
@@ -237,7 +237,7 @@ export default function SignupPage() {
                 'Create Account'
               )}
             </button>
-          </div>
+          </form>
 
           {/* Footer */}
           <div className="mt-6 text-center">

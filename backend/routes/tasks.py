@@ -10,7 +10,7 @@ from auth.dependencies import get_current_user_id
 from schemas.task import TaskCreate, TaskUpdate, TaskResponse
 
 
-router = APIRouter(prefix="/api", tags=["tasks"])
+router = APIRouter(tags=["tasks"])  # main.py adds /api prefix
 
 
 @router.post("/users/{user_id}/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)

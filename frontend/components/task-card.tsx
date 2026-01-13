@@ -52,7 +52,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onDelete, o
           )}
           <div className="mt-2 flex items-center justify-between">
             <span className="text-xs text-gray-500">
-              {new Date(task.createdAt).toLocaleDateString()}
+              {new Date(task.created_at).toLocaleDateString()}
             </span>
             <div className="flex space-x-2">
               <button
