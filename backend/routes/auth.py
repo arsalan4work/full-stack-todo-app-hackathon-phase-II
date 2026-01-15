@@ -8,7 +8,7 @@ import logging
 from passlib.context import CryptContext
 
 from db import get_session
-from models import User
+from models.user import User
 from schemas.user import UserCreate, UserLogin, Token
 
 # Password hashing context
