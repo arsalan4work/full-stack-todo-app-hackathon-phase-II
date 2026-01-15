@@ -11,14 +11,20 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS based on environment
+# Configure CORS - FIXED to always include Vercel frontend
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-allow_origins = [frontend_url]
+allow_origins = [
+    frontend_url,
+    "https://full-stack-todo-app-hackathon-front.vercel.app",  # Always allow your Vercel frontend
+]
+
+# Add development origins if in development
 if os.getenv("ENVIRONMENT") == "development":
-    allow_origins.append("http://localhost:3000")
-    allow_origins.append("http://127.0.0.1:3000")
-    allow_origins.append("http://localhost:3001")
-    allow_origins.append("*")  # Only for development
+    allow_origins.extend([
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+    ])
 
 app.add_middleware(
     CORSMiddleware,
