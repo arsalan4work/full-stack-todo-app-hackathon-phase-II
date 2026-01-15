@@ -5,7 +5,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from db import get_session
-from models import Task
+from models.task import Task
 from auth.dependencies import get_current_user_id
 from schemas.task import TaskCreate, TaskUpdate, TaskResponse
 
