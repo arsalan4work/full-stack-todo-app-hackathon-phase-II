@@ -2,6 +2,7 @@ import os
 from main import app
 import uvicorn
 
+# Python server
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(
