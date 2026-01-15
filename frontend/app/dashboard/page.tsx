@@ -52,7 +52,7 @@ export default function DashboardPage() {
   const fetchTasks = async (uid: string) => {
     try {
       const token = localStorage.getItem('auth-token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-front.vercel.app/';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-phase-ii-hb5r.onrender.com';
       
       console.log('Fetching tasks for user:', uid);
       console.log('Token exists:', !!token);
@@ -86,7 +86,7 @@ export default function DashboardPage() {
 
     try {
       const token = localStorage.getItem('auth-token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-front.vercel.app/';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-phase-ii-hb5r.onrender.com';
       
       // Debug logging
       console.log('Creating task...');
@@ -135,7 +135,7 @@ export default function DashboardPage() {
 
     try {
       const token = localStorage.getItem('auth-token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-front.vercel.app/';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-phase-ii-hb5r.onrender.com';
       
       const response = await fetch(`${apiUrl}/api/users/${userId}/tasks/${taskId}/complete`, {
         method: 'PATCH',
@@ -159,7 +159,7 @@ export default function DashboardPage() {
 
     try {
       const token = localStorage.getItem('auth-token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-front.vercel.app/';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-phase-ii-hb5r.onrender.com';
       
       const response = await fetch(`${apiUrl}/api/users/${userId}/tasks/${taskId}`, {
         method: 'DELETE',
@@ -188,7 +188,7 @@ export default function DashboardPage() {
 
     try {
       const token = localStorage.getItem('auth-token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-front.vercel.app/';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://full-stack-todo-app-hackathon-phase-ii-hb5r.onrender.com';
       
       const response = await fetch(`${apiUrl}/api/users/${userId}/tasks/${taskId}`, {
         method: 'PUT',
