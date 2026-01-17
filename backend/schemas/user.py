@@ -1,5 +1,5 @@
 # schemas/user.py
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
 
