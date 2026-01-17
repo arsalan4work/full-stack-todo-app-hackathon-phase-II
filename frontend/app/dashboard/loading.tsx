@@ -1,5 +1,3 @@
-import LoadingSpinner from '@/components/ui/loading-spinner';
-
 export default function DashboardLoading() {
   return (
     <div className="space-y-8">
