@@ -1,18 +1,13 @@
-# auth.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from datetime import datetime, timedelta
 import os
 import jwt
 import logging
-from passlib.context import CryptContext
 
 from db import get_session
 from models.user import User
 from schemas.user import UserCreate, UserLogin, Token
-
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -27,6 +22,7 @@ logging.basicConfig(level=logging.INFO)
 JWT_SECRET = os.getenv("JWT_SECRET", "your_super_secret_key")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+
 
 # ---------------------------
 # JWT token utility
@@ -58,12 +54,9 @@ async def signup(user_create: UserCreate, session: Session = Depends(get_session
                 detail="Email already registered"
             )
 
-        # Hash the password
-        hashed_password = pwd_context.hash(user_create.password)
-
         user = User(
             email=normalized_email,
-            password_hash=hashed_password,
+            password=user_create.password,
             is_active=True
         )
 
@@ -153,8 +146,8 @@ async def signin(user_login: UserLogin, session: Session = Depends(get_session))
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Verify password using bcrypt
-        if not pwd_context.verify(user_login.password, user.password_hash):
+        # Compare plain text password
+        if user_login.password != user.password:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",

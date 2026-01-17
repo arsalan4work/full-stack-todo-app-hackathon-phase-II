@@ -1,5 +1,5 @@
 # schemas/user.py
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 
 
@@ -7,8 +7,9 @@ class UserBase(BaseModel):
     email: EmailStr  # Changed from str to EmailStr for validation
 
 
-class UserCreate(UserBase):
-    password: str = Field(..., min_length=6, max_length=128)
+class UserCreate(BaseModel):
+    email: str
+    password: str
 
 
 class UserLogin(BaseModel):
