@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
-import { CheckCircle, XCircle, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -19,8 +19,13 @@ export default function SignupPage() {
 
   const validatePassword = (pass: string) => {
     if (pass.length < 6) return 'Password must be at least 6 characters';
+
     if (pass.length > 128) return 'Password is too long (max 128 characters)';
     return null;
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -157,7 +162,7 @@ export default function SignupPage() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   className="w-full pl-11 pr-11 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
                   required
@@ -173,7 +178,7 @@ export default function SignupPage() {
               
               {/* Password Strength Indicator */}
               {password && (
-                <div className="mt-2">
+                <div className="mt-2 space-y-2">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-gray-400">Password strength</span>
                     <span className={`text-xs font-medium ${
@@ -190,6 +195,7 @@ export default function SignupPage() {
                       style={{ width: `${passwordStrength.strength}%` }}
                     ></div>
                   </div>
+                  
                 </div>
               )}
             </div>

@@ -229,7 +229,7 @@ Specifications are organized in /specs:
 3. Update specs if requirements change
  
 ## Project Structure
-- /frontend - Next.js 14 app
+- /frontend - Next.js 16 app
 - /backend - Python FastAPI server
  
 ## Development Workflow

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
-import { CheckCircle, XCircle, Mail, Lock, Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
+import { CheckCircle, XCircle, Mail, Lock, Eye, EyeOff, Loader2, LogIn, AlertCircle } from 'lucide-react';
 
 export default function SigninPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +13,10 @@ export default function SigninPage() {
   const showToast = (message: string, type: string = 'error') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 5000);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,6 +70,7 @@ export default function SigninPage() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
@@ -141,7 +146,7 @@ export default function SigninPage() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   className="w-full pl-11 pr-11 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
                   required
@@ -154,6 +159,7 @@ export default function SigninPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              
             </div>
 
             {/* Remember Me */}
