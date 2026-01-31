@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from db import create_db_and_tables
 from routes import tasks
 from routes import auth
+from routes import chat
 import os
 
 app = FastAPI(
@@ -21,14 +22,6 @@ allow_origins = [
     "http://localhost:3001",
 ]
 
-# Add additional development origins if in development
-if os.getenv("ENVIRONMENT") == "development":
-    allow_origins.extend([
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-    ])
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
@@ -40,6 +33,7 @@ app.add_middleware(
 # Include routes
 app.include_router(tasks.router, prefix="/api")
 app.include_router(auth.router)  # auth router already has /api/auth prefix
+app.include_router(chat.router)  # chat router includes its own prefix
 
 @app.on_event("startup")
 def on_startup():

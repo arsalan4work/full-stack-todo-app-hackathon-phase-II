@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from models.task import Task
 from models.user import User
 from db import get_engine
+from utils.error_handler import TaskNotFoundError, UnauthorizedTaskAccessError, validate_task_id, validate_title_length
 
 
 def add_task(user_id: str, title: str, description: Optional[str] = None) -> dict:
@@ -20,11 +21,7 @@ def add_task(user_id: str, title: str, description: Optional[str] = None) -> dic
     """
     try:
         # Validate inputs
-        if not title or len(title.strip()) == 0:
-            return {"error": "Title is required and cannot be empty"}
-
-        if len(title) > 255:
-            return {"error": "Title cannot exceed 255 characters"}
+        validate_title_length(title)
 
         if description and len(description) > 1000:
             return {"error": "Description cannot exceed 1000 characters"}
@@ -120,8 +117,7 @@ def complete_task(user_id: str, task_id: int) -> dict:
     """
     try:
         # Validate inputs
-        if task_id <= 0:
-            return {"error": "Task ID must be greater than 0"}
+        validate_task_id(task_id)
 
         try:
             user_int_id = int(user_id)
@@ -134,10 +130,10 @@ def complete_task(user_id: str, task_id: int) -> dict:
             task = session.get(Task, task_id)
 
             if not task:
-                return {"error": "Task not found"}
+                return {"error": f"Task with ID {task_id} not found", "code": "TASK_NOT_FOUND"}
 
             if task.user_id != user_int_id:
-                return {"error": "Unauthorized"}
+                return {"error": f"User {user_int_id} does not have access to task {task_id}", "code": "UNAUTHORIZED_TASK_ACCESS"}
 
             # Update task to completed
             task.completed = True
@@ -167,8 +163,7 @@ def delete_task(user_id: str, task_id: int) -> dict:
     """
     try:
         # Validate inputs
-        if task_id <= 0:
-            return {"error": "Task ID must be greater than 0"}
+        validate_task_id(task_id)
 
         try:
             user_int_id = int(user_id)
@@ -181,10 +176,10 @@ def delete_task(user_id: str, task_id: int) -> dict:
             task = session.get(Task, task_id)
 
             if not task:
-                return {"error": "Task not found"}
+                return {"error": f"Task with ID {task_id} not found", "code": "TASK_NOT_FOUND"}
 
             if task.user_id != user_int_id:
-                return {"error": "Unauthorized"}
+                return {"error": f"User {user_int_id} does not have access to task {task_id}", "code": "UNAUTHORIZED_TASK_ACCESS"}
 
             # Delete the task
             session.delete(task)
@@ -214,14 +209,10 @@ def update_task(user_id: str, task_id: int, title: Optional[str] = None, descrip
     """
     try:
         # Validate inputs
-        if task_id <= 0:
-            return {"error": "Task ID must be greater than 0"}
+        validate_task_id(task_id)
 
-        if title is not None and len(title.strip()) == 0:
-            return {"error": "Title cannot be empty"}
-
-        if title is not None and len(title) > 255:
-            return {"error": "Title cannot exceed 255 characters"}
+        if title is not None:
+            validate_title_length(title)
 
         if description is not None and len(description) > 1000:
             return {"error": "Description cannot exceed 1000 characters"}
@@ -237,10 +228,10 @@ def update_task(user_id: str, task_id: int, title: Optional[str] = None, descrip
             task = session.get(Task, task_id)
 
             if not task:
-                return {"error": "Task not found"}
+                return {"error": f"Task with ID {task_id} not found", "code": "TASK_NOT_FOUND"}
 
             if task.user_id != user_int_id:
-                return {"error": "Unauthorized"}
+                return {"error": f"User {user_int_id} does not have access to task {task_id}", "code": "UNAUTHORIZED_TASK_ACCESS"}
 
             # Update task fields if provided
             if title is not None:
