@@ -42,4 +42,6 @@ def create_db_and_tables():
     # Import models here to avoid circular import
     from models.user import User
     from models.task import Task
+    from models.conversation import Conversation
+    from models.message import Message
     SQLModel.metadata.create_all(engine)

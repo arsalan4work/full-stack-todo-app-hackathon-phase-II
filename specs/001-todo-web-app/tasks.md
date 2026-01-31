@@ -156,7 +156,7 @@ Address edge cases, add error handling, implement security measures, and prepare
 - [ ] T076 Add accessibility features and ARIA attributes to all components in frontend/components/
 - [ ] T077 Set up proper SEO and meta tags for frontend pages in frontend/app/
 - [ ] T078 Add internationalization support in frontend/i18n/
-- [ ] T079 Create documentation for API endpoints in backend/docs/
+- [X] T079 Create documentation for API endpoints in backend/docs/
 - [ ] T080 Add performance monitoring and optimization in both frontend and backend
 
 ## Implementation Strategy

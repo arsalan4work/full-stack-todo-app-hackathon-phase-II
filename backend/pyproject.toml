@@ -1,22 +1,27 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "FastAPI backend"
+description = "FastAPI backend for Todo Web Application"
 readme = "README.md"
 requires-python = ">=3.12.7"
 
 dependencies = [
     "fastapi>=0.104,<0.130",
     "uvicorn[standard]>=0.24.0",
-    "sqlalchemy>=2.0.23",
     "sqlmodel>=0.0.14",
+    "sqlalchemy>=2.0.23",
     "psycopg2-binary>=2.9.7",
     "python-jose[cryptography]>=3.3.0",
     "pyjwt>=2.8.0",
     "python-multipart>=0.0.6",
     "python-dotenv>=1.0.0",
     "cryptography>=41.0.7",
-    "email-validator>=2.0.0"
+    "email-validator>=2.0.0",
+    "openai>=1.12.0",
+    "openai-agents>=0.6.7",
+    "openai-chatkit>=1.5.3",
+    "mcp>=1.25.0",
+    "bcrypt>=4.0.0",
 ]
 
 [tool.setuptools.packages.find]
